@@ -4,12 +4,13 @@
 INPUT_DIR=$1
 #-Set the maximum number of files in 1 list
 NUM_DIVIDES=$2
+#-Set ootput dir
+OUTPUT_DIR=$3
 
 #-Example usage
 # . GenerateLists.sh /mnt/pool/rhic/2/nigmatkulov/femtoDst/auau/200gev/12135/ 100
-
+mkdir OUTPUT_DIR
 CURRENT_DIR=${PWD}
-OUTPUT_DIR="../lists/lists27GeV/"
 
 TOTAL_NUM_FILES=`ls $INPUT_DIR/*.femtoDst.root | wc -l`
 echo "Total number of DST files: ${TOTAL_NUM_FILES}"
