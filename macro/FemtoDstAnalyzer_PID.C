@@ -42,19 +42,19 @@
 
 // FemtoDst headers
 
-#include "/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/StFemtoDstReader.h"
-#include "/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/StFemtoDst.h"
-#include "/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/StFemtoEvent.h"
-#include "/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/StFemtoTrack.h"
-#include "/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/StFemtoV0.h"
-#include "/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/StFemtoXi.h"
+#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoDstReader.h"
+#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoDst.h"
+#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoEvent.h"
+#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoTrack.h"
+#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoV0.h"
+#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoXi.h"
 
 // Constant
-#include "/mnt/pool/rhic/1/demanov/basov/hpc_scripts/macro/Constants.h"
+#include "/scratch2/demanov/STAR/BES/macro/Constants.h"
 
 // Load libraries (for ROOT_VERSTION_CODE >= 393215)
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,0,0)
-R__LOAD_LIBRARY(/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/libStFemtoDst.so)
+R__LOAD_LIBRARY(/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so)
 #endif
 
 // inFile - is a name of name.FemtoDst.root file or a name
@@ -97,7 +97,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
   std::cout << "Hi! Lets do some physics, Master!" << std::endl;
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
-    gSystem->Load("/mnt/pool/rhic/1/demanov/basov/StFemtoEvent/libStFemtoDst.so");
+    gSystem->Load("/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so");
   #endif
 
   StFemtoDstReader* femtoReader = new StFemtoDstReader(inFile);

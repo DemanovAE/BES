@@ -13,4 +13,4 @@ echo "Mode: $WORK_MODE"
 echo "ENERGY: $ENERGY"
 echo "Log: $LOG_FILE"
 
-/mnt/pool/rhic/1/demanov/basov/hpc_scripts/build/FemtoDstAnalyzer_Hadrons -i $INPUT_FILE -o $OUTPUT_FILE -m $WORK_MODE -g $ENERGY &> $LOG_FILE
+./build/FemtoDstAnalyzer_Hadrons -i $INPUT_FILE -o $OUTPUT_FILE -m $WORK_MODE -g $ENERGY &> $LOG_FILE

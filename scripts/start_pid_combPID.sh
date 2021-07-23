@@ -3,7 +3,7 @@
 INPUT_LIST_DIR=$1
 WORK_MODE=$2
 ENERGY=$3
-OUTPUT_DIR=/mnt/pool/rhic/1/demanov/basov/hpc_scripts/OUT/${ENERGY}GeV/new_CombPID_${WORK_MODE}_${ENERGY}GeV_dca11_`date '+%Y%m%d_%H%M%S'`
+OUTPUT_DIR=/scratch2/$USER/BES/OUT/${ENERGY}GeV/CombPID_${WORK_MODE}_${ENERGY}GeV_`date '+%Y%m%d_%H%M%S'`
 
 QUEUE=medium
 

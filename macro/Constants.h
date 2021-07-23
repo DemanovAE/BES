@@ -1,6 +1,6 @@
 #include <TMath.h>
 
-const Char_t *path="/mnt/pool/rhic/1/demanov/basov/hpc_scripts";
+const Char_t *path="/scratch2/demanov/STAR/BES/";
 
 const int nBinCent = 9;
 const int nBinVtxZ_Hadrons = 2;

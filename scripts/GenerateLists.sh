@@ -9,7 +9,7 @@ NUM_DIVIDES=$2
 # . GenerateLists.sh /mnt/pool/rhic/2/nigmatkulov/femtoDst/auau/200gev/12135/ 100
 
 CURRENT_DIR=${PWD}
-OUTPUT_DIR="../lists/lists27GeVRun18Per2/"
+OUTPUT_DIR="../lists/lists27GeV/"
 
 TOTAL_NUM_FILES=`ls $INPUT_DIR/*.femtoDst.root | wc -l`
 echo "Total number of DST files: ${TOTAL_NUM_FILES}"
