@@ -517,6 +517,7 @@ std::vector<Int_t> trig = Trigger.at(_energy);
 Bool_t TofMatchedCut(StFemtoDst *const &dst, Int_t cutTofMatched){
 
     Int_t nTrack = dst->numberOfTracks();
+    Int_t number_tof=0;
 
     for(Int_t iTrk=0; iTrk<nTrack; iTrk++) {
       StFemtoTrack *femtoTrack = dst->track(iTrk);
