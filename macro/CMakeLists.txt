@@ -57,8 +57,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
 
 add_executable(FemtoDstAnalyzer_Hadrons main_Hadrons.cpp)
 target_link_libraries(FemtoDstAnalyzer_Hadrons ${ST_FEMTO_DST} ${ROOT_LIBRARIES})
-add_executable(FemtoDstAnalyzer_Hadrons_SP main_Hadrons_SP.cpp)
-target_link_libraries(FemtoDstAnalyzer_Hadrons_SP ${ST_FEMTO_DST} ${ROOT_LIBRARIES})
 add_executable(FemtoDstAnalyzer_PID main_PID.cpp)
 target_link_libraries(FemtoDstAnalyzer_PID ${ST_FEMTO_DST} ${ROOT_LIBRARIES})
 add_executable(PIDcomb main_PIDcomb.cpp)
