@@ -185,6 +185,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
   TH1D *h_MultWithTrigger;
   TH2D *h_BTofMatchedVsRefMult;
 
+  TH2D *h2_nSigmaM2_all[2][3];
   TH2D *h2_nSigma[2][3][30];
 
   //***************TProfile for read in file **//
@@ -407,12 +408,21 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
 
     Int_t p_name = 0;
 
+
+    for(Int_t par = 0; par < 3; par++){
+      for(Int_t sign = 0; sign < 2; sign++){
+        h2_nSigmaM2_all[sign][par] = new TH2D(Form("h1_nSigmaM2_%s_ch%i", particles[par],sign),Form("n#sigma(%s)(m^2);n#sigma(%s)", partLateX[p_name], partLateX[p_name]), 1000, 0., 5. ,2001, -10., 10. );
+      }
+      p_name++;
+    }
+    p_name=0;
+
     for(Int_t par = 0; par < 3; par++){
       for(Int_t sign = 0; sign < 2; sign++){
         for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
           h2_nSigma[sign][par][pti] = new TH2D(Form("h2_nSigmaM2AnddEdx_%s_ch%i_pt%i", particles[par],sign,pti),Form("m^{2} vs n#sigma(%s) %.1f<p_T<%.1f GeV/c;n#sigma(%s);m^{2},(GeV/c^{2})^{2}", partLateX[p_name], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[sign]), 2001, -10, 10, 2001, -10, 10 );
-          p_name++;
         }
+        p_name++;
       }
     }
 
@@ -570,7 +580,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
     }
     FileFlow->Close();
 
-    FileFitM2 = new TFile(Form("%s/PIDcomb/FitFunM2_%iGeVRun18.root",path,energy),"READ");
+    FileFitM2 = new TFile(Form("%s/OUT/%iGeV/FitFunM2_%iGeVRun10.root",path, energy,energy),"READ");
     FileFitM2->cd();
     /*
     for(Int_t ch=0; ch<2; ch++){
@@ -811,6 +821,14 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
         v3 = 0.;
 
         ///////Проверочные истограммы
+        h2_nSigmaM2_all[charge][0]->Fill(pt, (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][0]->Eval( femtoTrack->pt() )  );
+        h2_nSigmaM2_all[charge][1]->Fill(pt, (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][1]->Eval( femtoTrack->pt() )  );
+        h2_nSigmaM2_all[charge][2]->Fill(pt, (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][2]->Eval( femtoTrack->pt() )  );
+        
+        h2_nSigma[charge][0][ptBin]->Fill(femtoTrack->nSigmaPion(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][0]->Eval( femtoTrack->pt() ) );
+        h2_nSigma[charge][1][ptBin]->Fill(femtoTrack->nSigmaKaon(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][1]->Eval( femtoTrack->pt() ) );
+        h2_nSigma[charge][2][ptBin]->Fill(femtoTrack->nSigmaProton(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][2]->Eval( femtoTrack->pt() ) );
+
 
         for(Int_t s = 0; s <= EtaBin; s++) { 
 
@@ -838,6 +856,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
             tp2_v3_nSigmaPID_cent[s][charge][parnSigma] -> Fill((Double_t)cent, v3);
 
             tp2_meanPt_nSigmaPID[s][charge][parnSigma] -> Fill(pt,(Double_t)cent,pt);
+
           }
           
 

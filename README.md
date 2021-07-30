@@ -1,82 +1,87 @@
-# v2,v3  (STAR BES)
-***
+# v2,v3 (STAR BES)
 
-Данный код позволяет измерить эллиптический и треугольный потоки в стокновениях ядер золота при энергиях BES STAR.
+Данный код позволяет измерить эллиптический и треугольный потоки в столкновениях ядер золота при энергиях BES STAR, используя метод плоскости события.
 
 ## Содержание:
 
-## Setting environment
+I. [Устновка](#Устновка) \
+II. [подготовка данных](#ПодготовкаДанных) \
+III. [Обработка событий](#EventProcessing) \
 
-I. [Installation](#Installation) \
+## I. Устновка <a name="Устновка"></a>
 
-## I. Installation <a name="Installation"></a>
+На кластере NICA
 
-Copy from a git repo:
+```bash
+cd /scratch2/${USER}
+mkdir STAR
+cd STAR
+git clone https://github.com/DemanovAE/BES.git
+cd BES
+```
 
-        git clone https://devel.mephi.ru/PEParfenov/hpc_scripts.git
+Не забудьте добавить библиотеки ROOT в свою среду, используя thisroot.sh
+В терминале кластера NICA:
 
-Change paths accordingly:
+```sh
+source /opt/fairsoft/bmn/may18p1/bin/thisroot.sh
+```
 
-* 1 In `set_env.sh`: Change `ST_FEMTO_DST_INC_DIR` to standard one. It's the directory where `libStFemtoDst.so` is stored.
-* 2 In `scripts/run.sh`: change path to a last line to one where your build will be.
-* 3 In `scripts/start.sh`: change path to output directory (`OUTPUT_DIR`).
+Компилирование читалки данных:
+(собранная читалка для данных femtoDst лежит по пути `/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so`)
 
-## Installation
+```bash
+cd StFemtoEvent
+make
+```
+Измените пути в `set_env.sh`: изменить `ST_FEMTO_DST_INC_DIR` на стандартный. Это каталог, в котором хранится `libStFemtoDst.so`.
 
-Source required environment variables:
+Установка проекта с помощью CMake. (находясь в директории ./BES)
 
-        cd hpc_scripts/
-        . set_env.sh
+```bash
+mkdir build
+cd build
+cmake ../macro
+make
+```
 
-Make new build directory. For example:
+## II. Подготовка данных <a name="ПодготовкаДанных"></a>
 
-        mkdir build/
-        cd build/
+Используйте `./scripts/GenerateLists.sh` для создания списков файлов:
 
-Generate makefile & install:
+```bash
+. GenerateLists.sh FEMTODST_DIR N_FILES_IN_LIST
+```
+где FEMTODST_DIR - путь к каталогу с femtoDst.root файлами. И N_FILES_IN_LIST обозначает максимальное количество femtoDst.root файлов в каждом листе. Базовый пример: `. GenerateLists.sh /scratch2/parfenov/StData/27gev/run1/ 100`
 
-        cmake ../macro/
-        make
+Полученные списки файлов будут в BES/lists/
 
-Keep in mind that one has to do `make` command after changing `FemtoDstAnalyzer.C` in order to compile new code.
 
-## Generate filelists
+## III. Обработка событий <a name="EventProcessing"></a>
 
-Use `GenerateLists.sh` to make filelists:
+Интерактивный режим:
+```bash
+./FemtoDstAnalyzer_PID -i inFile -o outFile -m WorkMode -g Energy
+```
+1. `inFile` - root файл или лист с файлами
+2. `outFile` - выходной файл. Для измерения потоков нужно провести 3 прогонки данных. Выходной файл после 1 прогонки `NoRe_27GeV.root`, после второй - `Re_27GeV.root` и конечный файл `Flow_27GeV.root`.
+3. `WorkMode` - указывает стадию анализа.
 
-        . GenerateLists.sh FEMTODST_DIR N_FILES_IN_LIST
+        | WorkMode        | Описание |
+        | --------------- | ----------- |
+        | QA              | в разработке
+        | raw             | Первая прогонка данных. На данном этапе набираются данные для корекции Q-векторов, а именно дял процедуры реценренинга
+        | rec             | Вторая прогонка данных. На данном этапе набираются данные для корекции угла плоскости события, а именно дял процедуры флатенинга
+        | flow            | Третья прогонка данных. На данном этапе измеряются v2, v3, и расрешение.
+4. `Energy` - энергия анализируемых данных.
 
-where `FEMTODST_DIR` - path to the directory with `femtoDst.root` files.
-And `N_FILES_IN_LIST` denotes the maximum number of `femtoDst.root` files in each filelist.
-Basic example:
+Пример запуска:
+```bash
+./FemtoDstAnalyzer_PID -i ../lists/lists27GeV/StRun15.list -o ./NoRe_27GeV.root -m raw -g 27
+```
 
-          . GenerateLists.sh /mnt/pool/rhic/2/nigmatkulov/femtoDst/auau/200gev/12135/ 100
-
-Resulting filelists will be in the `hpc_scripts/lists/` directory.
-
-## Usage
-
-### Interactive mode
-
-To use `FemtoDstAnalyzer.C` in interactive mode:
-
-        cd build/
-        ./FemtoDstAnalyzer -i INPUTFILE -o OUTPUTFILE
-
-where `INPUTFILE` - is input file or filelist with `femtoDst.root`.
-`OUTPUTFILE` - is resulting root file.
-Basic example:
-
-        ./FemtoDstAnalyzer -i ../lists/StRuns1.list -o ./test.root
-
-### Batch mode
-
-To send jobs to basov cluster, use `scripts/start.sh`:
-
-        . start.sh INPUT_FILELIST_DIR
-
-where `INPUT_FILELIST_DIR` - is the directory where you store filelists.
-Basic example:
-
-        . start.sh /mnt/pool/rhic/4/parfenovpeter/STAR/Analysis/hpc_scripts/lists
-# BES 
+Для отправки задач на класстер NICA используются следующий bash скрипт - `/scripts/start_pid_nica.sh INPUT_FILELIST_DIR INPUT_WORKMODE INPUT_ENERGY`
+```sh
+cd /scripts
+. start_pid_nica.sh /scratch2/$USER/STAR/BES/lists/lists27GeV raw 27
+```
