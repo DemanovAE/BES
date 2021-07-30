@@ -183,9 +183,6 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
 
     for(Int_t ch=0; ch<2; ch++){
       for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
-        h1_m2_ptBin[ch][pti] = new TH1D(Form("h2_m2_%i_pt%i",ch,pti),Form("m^{2}, %.1f<p_T<%.1f GeV/c;m^{2},(GeV/c^{2})^{2}", ptBinRange[pti], ptBinRange[pti+1] ), 2000, -0.5, 1.5 );
-      }
-      for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
         h2_m2vsnSigmaPion_piKp[ch][pti] = new TH2D(Form("h2_m2VsnSigma_piKp_%i_pt%i",ch,pti),Form("m^{2} vs n#sigma(%s) %.1f<p_T<%.1f GeV/c;n#sigma(%s);m^{2},(GeV/c^{2})^{2}", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch]), 1200, -12, 12, 1200, -1.0, 2.0 );
       }
     }
@@ -415,7 +412,6 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
 
       if(mode_first==true){
         h2_m2VsPt_all[charge]->Fill(femtoTrack -> pt(), femtoTrack->massSqr());
-        h1_m2_ptBin[charge][ptBin]->Fill(femtoTrack->massSqr());
         h2_m2vsnSigmaPion_piKp[charge][ptBin]->Fill(femtoTrack->nSigmaPion(), femtoTrack->massSqr());
 
       }//mode_nSigma

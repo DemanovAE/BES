@@ -10,6 +10,11 @@ const int nBinVtxZ_PID = 10;
 const int nEtaGap=1;
 const int nEtaGapHadrons=1;
 
+const Bool_t pidTPCandTOF_FixCuts=true;
+const Bool_t pidTPCandTOF_nSigmaM2=false;
+const Bool_t pidTPCandTOF_CombPID=false;
+const Bool_t pidTPCandTOF_nSigmaM2andCombPID=false;
+
 const Char_t *particles[] = {"Pion","Kaon","Proton"};
 const Char_t *particlesSign[] = {"Pos","Neg"};
 const Char_t *partLateX[] = {"#pi^{+}","pi^{-}","K^{+}","K^{-}","p","#bar{p}"};

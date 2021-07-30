@@ -9,7 +9,7 @@ OUTPUT_DIR=$3
 
 #-Example usage
 # . GenerateLists.sh /mnt/pool/rhic/2/nigmatkulov/femtoDst/auau/200gev/12135/ 100
-mkdir OUTPUT_DIR
+mkdir -p OUTPUT_DIR
 CURRENT_DIR=${PWD}
 
 TOTAL_NUM_FILES=`ls $INPUT_DIR/*.femtoDst.root | wc -l`

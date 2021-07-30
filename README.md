@@ -1,9 +1,15 @@
-# Quick information
+# v2,v3  (STAR BES)
 ***
 
-It is a simple example of scripts/macros sets suitable for work on the MEPhI (basov) cluster.
+Данный код позволяет измерить эллиптический и треугольный потоки в стокновениях ядер золота при энергиях BES STAR.
+
+## Содержание:
 
 ## Setting environment
+
+I. [Installation](#Installation) \
+
+## I. Installation <a name="Installation"></a>
 
 Copy from a git repo:
 
