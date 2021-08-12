@@ -77,7 +77,8 @@ int PID_TPC_TOF(StFemtoTrack *const &track, const Int_t _energy);
 int GetCharge(StFemtoTrack *const &track);
 Bool_t TofMatchedCut(StFemtoDst *const &dst, Int_t cutTofMatched);
 
-int PID_nSigma(StFemtoTrack *const &track, const Int_t _energy, Int_t charge, TF1 *funMean[][3], TF1 *funSigma[][3], Double_t nSigma);
+Double_t GetNSigmaM2(Double_t x_pt, Double_t mean, Double_t sigma);
+int PID_nSigma(StFemtoTrack *const &track, const Int_t _energy, Int_t charge, TF1 *funMean[][3], TF1 *funSigma[][3], Double_t nSigma, Double_t nSigmaAntSimm);
 int PID_CombPID_lowPt(StFemtoTrack *const &track, const Int_t _energy, Int_t charge, TF1 *funMean[][3], TF1 *funSigma[][3], Double_t nSigma);
 int PID_CombPIDfix95(StFemtoTrack *const &track, const Int_t _energy, Double_t x, Double_t y, Int_t charge, Int_t pt, TF1 *funMean[][3], TF1 *funSigma[][3], Double_t nSigma);
 
@@ -187,6 +188,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
 
   TH2D *h2_nSigmaM2_all[2][3];
   TH2D *h2_nSigma[2][3][30];
+  TH2D *h2_nSigma2[2][3][30];
 
   //***************TProfile for read in file **//
   TProfile2D *tp_read_profile;
@@ -340,7 +342,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
       }
     }
 
-    FileRec = new TFile(Form("%s/OUT/%iGeV/NoRe_%iGeV_PID_10binYesTofdca11_sys_all.root",path,energy,energy),"READ");
+    FileRec = new TFile(Form("%s/OUT/%iGeV/raw_%iGeV_PID.root",path,energy,energy),"READ");
     FileRec->cd();
 
     for(Int_t dir = 0; dir < 2; dir++) {
@@ -408,7 +410,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
 
     Int_t p_name = 0;
 
-
+    /*
     for(Int_t par = 0; par < 3; par++){
       for(Int_t sign = 0; sign < 2; sign++){
         h2_nSigmaM2_all[sign][par] = new TH2D(Form("h1_nSigmaM2_%s_ch%i", particles[par],sign),Form("n#sigma(%s)(m^2);n#sigma(%s)", partLateX[p_name], partLateX[p_name]), 1000, 0., 5. ,2001, -10., 10. );
@@ -421,12 +423,14 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
       for(Int_t sign = 0; sign < 2; sign++){
         for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
           h2_nSigma[sign][par][pti] = new TH2D(Form("h2_nSigmaM2AnddEdx_%s_ch%i_pt%i", particles[par],sign,pti),Form("m^{2} vs n#sigma(%s) %.1f<p_T<%.1f GeV/c;n#sigma(%s);m^{2},(GeV/c^{2})^{2}", partLateX[p_name], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[sign]), 2001, -10, 10, 2001, -10, 10 );
+          h2_nSigma2[sign][par][pti] = new TH2D(Form("h2_nSigmaM2AnddEdx2_%s_ch%i_pt%i", particles[par],sign,pti),Form("m^{2} vs n#sigma(%s) %.1f<p_T<%.1f GeV/c;n#sigma(%s);m^{2},(GeV/c^{2})^{2}", partLateX[p_name], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[sign]), 2001, -10, 10, 2001, -10, 10 );
         }
         p_name++;
       }
     }
 
     p_name = 0;
+    */
 
     for(Int_t par = 0; par < 3; par++){
       for(Int_t sign = 0; sign < 2; sign++){
@@ -467,7 +471,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
       }// for(Int_t sign = 0; sign < 2; sign++){}
     }// for(Int_t par = 0; par < 3; par++){}
 
-    FileRec = new TFile(Form("%s/OUT/%iGeV/NoRe_%iGeV_PID_10binYesTofdca11_sys_all.root",path,energy,energy),"READ");
+    FileRec = new TFile(Form("%s/OUT/%iGeV/raw_%iGeV_PID.root",path,energy,energy),"READ");
     FileRec -> cd();
     for(Int_t dir = 0; dir < 2; dir++) {
       for(Int_t i = 0; i < nEtaGap; i++) {
@@ -522,7 +526,7 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
     }
     FileRec->Close();
 
-    FileFlow = new TFile(Form("%s/OUT/%iGeV/Re_%iGeV_PID_10binYesTofdca11_sys_all.root", path,energy,energy),"READ");
+    FileFlow = new TFile(Form("%s/OUT/%iGeV/rec_%iGeV_PID.root", path,energy,energy),"READ");
     FileFlow -> cd();
 
     for(Int_t l = 0; l < 2; l++) {
@@ -788,6 +792,19 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
         Int_t charge = GetCharge(femtoTrack);
         Int_t ptBin = GetBinPtRange(femtoTrack);
 
+        /*
+        ///////Проверочные истограммы
+        h2_nSigmaM2_all[charge][0]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][0]->Eval( femtoTrack->pt() )  );
+        h2_nSigmaM2_all[charge][1]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][1]->Eval( femtoTrack->pt() )  );
+        h2_nSigmaM2_all[charge][2]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][2]->Eval( femtoTrack->pt() )  );
+        
+        if(ptBin != -1){
+          h2_nSigma[charge][0][ptBin]->Fill(femtoTrack->nSigmaPion(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][0]->Eval( femtoTrack->pt() ) );
+          h2_nSigma[charge][1][ptBin]->Fill(femtoTrack->nSigmaKaon(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][1]->Eval( femtoTrack->pt() ) );
+          h2_nSigma[charge][2][ptBin]->Fill(femtoTrack->nSigmaProton(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][2]->Eval( femtoTrack->pt() ) );
+        }
+        */
+
         //h2_m2VsPt_all->Fill(femtoTrack->charge() * femtoTrack -> pt(), femtoTrack->massSqr());
         //h2_dEdxVsPt_all->Fill( femtoTrack->charge() * femtoTrack -> pt(), femtoTrack->dEdx() * 1e6 );
 
@@ -806,9 +823,9 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
         //Int_t parCombPID = PID_CombPIDfix95(femtoTrack,energy, NewX, NewY ,charge, ptBin, tf1_FitMeanM2, tf1_FitSigmaM2, 2.0);
         //if( parTPC == -1 && parTPC == -1 && parTPCandTOF == -1 && parCombPID == -1) continue;
         //if(  parTPCandTOF == -1 && parCombPID == -1) continue;
-        
+
         Int_t parTPCandTOF = PID_TPC_TOF(femtoTrack,energy);
-        Int_t parnSigma = PID_nSigma(femtoTrack,energy, charge, tf1_FitMeanM2, tf1_FitSigmaM2, 2.0);
+        Int_t parnSigma = PID_nSigma(femtoTrack,energy, charge, tf1_FitMeanM2, tf1_FitSigmaM2, 2.0, 2.5);
 
         if(  parTPCandTOF == -1 && parnSigma == -1) continue;
         
@@ -819,16 +836,6 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
 
         v2 = 0.;
         v3 = 0.;
-
-        ///////Проверочные истограммы
-        h2_nSigmaM2_all[charge][0]->Fill(pt, (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][0]->Eval( femtoTrack->pt() )  );
-        h2_nSigmaM2_all[charge][1]->Fill(pt, (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][1]->Eval( femtoTrack->pt() )  );
-        h2_nSigmaM2_all[charge][2]->Fill(pt, (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][2]->Eval( femtoTrack->pt() )  );
-        
-        h2_nSigma[charge][0][ptBin]->Fill(femtoTrack->nSigmaPion(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][0]->Eval( femtoTrack->pt() ) );
-        h2_nSigma[charge][1][ptBin]->Fill(femtoTrack->nSigmaKaon(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][1]->Eval( femtoTrack->pt() ) );
-        h2_nSigma[charge][2][ptBin]->Fill(femtoTrack->nSigmaProton(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][2]->Eval( femtoTrack->pt() ) );
-
 
         for(Int_t s = 0; s <= EtaBin; s++) { 
 
@@ -856,6 +863,11 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
             tp2_v3_nSigmaPID_cent[s][charge][parnSigma] -> Fill((Double_t)cent, v3);
 
             tp2_meanPt_nSigmaPID[s][charge][parnSigma] -> Fill(pt,(Double_t)cent,pt);
+
+        //h2_nSigma2[charge][0][ptBin]->Fill(femtoTrack->nSigmaPion(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][0]->Eval( femtoTrack->pt() ) );
+        //h2_nSigma2[charge][1][ptBin]->Fill(femtoTrack->nSigmaKaon(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][1]->Eval( femtoTrack->pt() ) );
+        //h2_nSigma2[charge][2][ptBin]->Fill(femtoTrack->nSigmaProton(),  (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval( femtoTrack->pt() )) / tf1_FitSigmaM2[charge][2]->Eval( femtoTrack->pt() ) );
+
 
           }
           
@@ -1127,25 +1139,32 @@ int PID_CombPIDfix95(StFemtoTrack *const &track, const Int_t _energy, Double_t x
   return -1;
 }// PID
 
-int PID_nSigma(StFemtoTrack *const &track, const Int_t _energy, Int_t charge, TF1 *funMean[][3], TF1 *funSigma[][3], Double_t nSigma){
+int PID_nSigma(StFemtoTrack *const &track, const Int_t _energy, Int_t charge, TF1 *funMean[][3], TF1 *funSigma[][3], Double_t nSigma, Double_t nSigmaAntSimm){
 
-  if(sqrt(  pow( (track->massSqr() - funMean[charge][0]->Eval( track->pt() )) / funSigma[charge][0]->Eval( track->pt() ), 2) 
-          + pow( 2.0 * track->nSigmaPion(), 2) ) < nSigma ){
+  if(sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][0]->Eval( track->pt() ), funSigma[charge][0]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaPion(), 2)) < nSigma &&
+     sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][1]->Eval( track->pt() ), funSigma[charge][1]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaKaon(), 2)) > nSigmaAntSimm &&
+     sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][2]->Eval( track->pt() ), funSigma[charge][2]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaProton(), 2)) > nSigmaAntSimm){
     return 0;
   }
 
-  if(sqrt(  pow( (track->massSqr() - funMean[charge][1]->Eval( track->pt() )) / funSigma[charge][1]->Eval( track->pt() ), 2) 
-          + pow( 2.0 * track->nSigmaKaon(), 2) ) < nSigma ){
+  if(sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][1]->Eval( track->pt() ), funSigma[charge][1]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaKaon(), 2)) < nSigma &&
+     sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][0]->Eval( track->pt() ), funSigma[charge][0]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaPion(), 2)) > nSigmaAntSimm &&
+     sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][2]->Eval( track->pt() ), funSigma[charge][2]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaProton(), 2)) > nSigmaAntSimm){
     return 1;
   }
 
-    if(sqrt(  pow( (track->massSqr() - funMean[charge][2]->Eval( track->pt() )) / funSigma[charge][2]->Eval( track->pt() ), 2) 
-          + pow( 2.0 * track->nSigmaProton(), 2) ) < nSigma ){
+  if(sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][2]->Eval( track->pt() ), funSigma[charge][2]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaProton(), 2)) < nSigma &&
+     sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][0]->Eval( track->pt() ), funSigma[charge][0]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaKaon(), 2)) > nSigmaAntSimm &&
+     sqrt( pow( GetNSigmaM2(track->massSqr(), funMean[charge][1]->Eval( track->pt() ), funSigma[charge][1]->Eval( track->pt())), 2) + pow( 2.0 * track->nSigmaPion(), 2)) > nSigmaAntSimm){
     return 2;
   }
 
   return -1;
 }// PID
+
+Double_t GetNSigmaM2(Double_t x_pt, Double_t mean, Double_t sigma){
+  return (x_pt - mean)/sigma;
+}
 
 int PID_CombPID_lowPt(StFemtoTrack *const &track, const Int_t _energy, Int_t charge, TF1 *funMean[][3], TF1 *funSigma[][3], Double_t nSigma){
 

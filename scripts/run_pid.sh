@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#$ -N Flow
+
 INPUT_FILE=$1
 OUTPUT_FILE=$2
 WORK_MODE=$3

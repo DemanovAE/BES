@@ -5,8 +5,6 @@ WORK_MODE=$2
 ENERGY=$3
 OUTPUT_DIR=/scratch2/$USER/BES/OUT/${ENERGY}GeV/CombPID_${WORK_MODE}_${ENERGY}GeV_`date '+%Y%m%d_%H%M%S'`
 
-QUEUE=medium
-
 mkdir -p $OUTPUT_DIR/log
 mkdir -p $OUTPUT_DIR/root
 mkdir -p $OUTPUT_DIR/sge_error
@@ -19,6 +17,6 @@ do
   OUTPUT_O_SGE=$OUTPUT_DIR/sge_output/$RUNID/`basename ${line%.*t}`.out
   OUTPUT_E_SGE=$OUTPUT_DIR/sge_error/$RUNID/`basename ${line%.*t}`.err
 
-  qsub -q $QUEUE -o $OUTPUT_O_SGE -e $OUTPUT_E_SGE -l walltime=24:00:00 start_pid_combPID.sh -F "$line $OUTPUT_ROOT $WORK_MODE $ENERGY $OUTPUT_LOG"
+  qsub -o $OUTPUT_O_SGE -e $OUTPUT_E_SGE start_pid_combPID.sh $line $OUTPUT_ROOT $WORK_MODE $ENERGY $OUTPUT_LOG
 
 done
