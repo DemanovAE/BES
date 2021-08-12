@@ -3,7 +3,7 @@
 INPUT_LIST_DIR=$1
 WORK_MODE=$2
 ENERGY=$3
-OUTPUT_DIR=/scratch2/$USER/BES/OUT/${ENERGY}GeV/CombPID_${WORK_MODE}_${ENERGY}GeV_`date '+%Y%m%d_%H%M%S'`
+OUTPUT_DIR=/scratch2/$USER/BES/OUT/${ENERGY}GeV/${WORK_MODE}_${ENERGY}GeV_`date '+%Y%m%d_%H%M%S'`
 
 mkdir -p $OUTPUT_DIR/log
 mkdir -p $OUTPUT_DIR/root
