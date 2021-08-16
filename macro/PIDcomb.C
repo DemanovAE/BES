@@ -41,19 +41,21 @@
 
 // FemtoDst headers
 
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoDstReader.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoDst.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoEvent.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoTrack.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoV0.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoXi.h"
+#include "StFemtoDstReader.h"
+#include "StFemtoDst.h"
+#include "StFemtoEvent.h"
+#include "StFemtoTrack.h"
+#include "StFemtoV0.h"
+#include "StFemtoXi.h"
 
 // Constant
-#include "/scratch2/demanov/STAR/BES/macro/Constants.h"
+#include "Constants.h"
+#include "functions.C"
+
 
 // Load libraries (for ROOT_VERSTION_CODE >= 393215)
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,0,0)
-R__LOAD_LIBRARY(/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so)
+R__LOAD_LIBRARY(libStFemtoDst.so)
 #endif
 
 // inFile - is a name of name.FemtoDst.root file or a name
@@ -64,14 +66,6 @@ R__LOAD_LIBRARY(/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so)
 Bool_t isGoodEvent(StFemtoEvent *const &event, const Int_t _energy, const Bool_t BadRunIdKeyFlowStage);
 Bool_t TofMatchedCut(StFemtoDst *const &dst, Int_t cutTofMatched);
 Bool_t isGoodTrackFlow(StFemtoEvent *const &event, StFemtoTrack *const &track, const Int_t _energy);
-Int_t GetBinPtRange(StFemtoTrack *const &track);
-Int_t GetBinEta(StFemtoTrack *const &track);
-Int_t GetEtaDirection(StFemtoTrack *const &track);
-Float_t GetMass(Int_t particle);
-Double_t GetWeight(StFemtoTrack *const &track);
-int GetCharge(StFemtoTrack *const &track);
-int PID_TPC_TOF(StFemtoTrack *const &track, const Int_t _energy);
-//TVector2 CalcNewXY(StFemtoTrack *const &track, Int_t pt_bin_number, Int_t chPar );
 
 TVector2 CalcNewXY(StFemtoTrack *const &track, Double_t width_nsigma, Double_t width_m2, 
                                                Double_t mean_nsigma_Kaon, Double_t mean_m2_Kaon,
@@ -87,7 +81,7 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
   std::cout << "Hi! Lets do some physics, Master!" << std::endl;
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
-    gSystem->Load("/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so");
+    gSystem->Load("libStFemtoDst.so");
   #endif
 
   StFemtoDstReader* femtoReader = new StFemtoDstReader(inFile);
@@ -403,7 +397,6 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
 
       Int_t charge = GetCharge(femtoTrack);
       Int_t ptBin = GetBinPtRange(femtoTrack);
-      Int_t PIDcode = PID_TPC_TOF(femtoTrack, energy);
       Double_t pt = femtoTrack->pt();
 
       if( charge == -1 || ptBin == -1 ) continue;
@@ -549,75 +542,6 @@ Bool_t isGoodTrackFlow(StFemtoEvent *const &event, StFemtoTrack *const &track, c
 
   return true; 
 }// isGoodTrack(){}
-
-
-
-Int_t GetEtaDirection(StFemtoTrack *const &track){
-
-  if(track -> eta() < 0.) return 0;
-  if(track -> eta() > 0.) return 1;
-  return -1;
-}
-
-Int_t GetBinEta(StFemtoTrack *const &track){
-
-  for(Int_t i = nEtaGap-1 ; i >= 0; i--){
-    if( TMath::Abs(track -> eta()) > EtaVecPID[i]){ 
-      return i;
-    } 
-  }
-  return -1;
-}
-
-Float_t GetMass(Int_t particle){
-  if(particle==0){
-    return pion_mass;
-  }
-  if(particle==1){
-    return kaon_mass;
-  }
-  if(particle==2){
-    return proton_mass;
-  }
-  return 100.;
-}
-
-int GetCharge(StFemtoTrack *const &track){
-
-  if((Int_t)track -> charge() > 0) return 0;
-  if((Int_t)track -> charge() < 0) return 1;
-
-  return -1;
-}// PID
-
-Int_t GetBinPtRange(StFemtoTrack *const &track){
-
-  if ( track->isTofTrack() ){
-    for(Int_t i = 0; i < (int)ptBinRange.size()-1; i++){
-      if( track->pt() >= ptBinRange[i] && track->pt() < ptBinRange[i+1]){
-        return i;
-      }
-    }
-  }
-  return -1;
-}
-
-int PID_TPC_TOF(StFemtoTrack *const &track, const Int_t _energy){
-
-  if ( track->isTofTrack() ){
-    if( TMath::Abs( track->nSigmaPion() ) < 3.0){ //&& track->massSqr() > SqMdown[0] && track->massSqr() < SqMup[0]){
-      return 0;
-    }
-    if( TMath::Abs( track->nSigmaKaon() ) < 3.0){ //&& track->massSqr()> SqMdown[1] && track->massSqr() < SqMup[1]){
-      return 1;
-    }
-    if( TMath::Abs( track->nSigmaProton() ) < 3.0){ //&& track->massSqr()> SqMdown[2] && track->massSqr() < SqMup[2]){
-      return 2;
-    }
-  }
-  return -1;
-}// PID
-
 
 TVector2 CalcNewXY(StFemtoTrack *const &track, Double_t width_nsigma, Double_t width_m2, 
                                                Double_t mean_nsigma_Kaon, Double_t mean_m2_Kaon,

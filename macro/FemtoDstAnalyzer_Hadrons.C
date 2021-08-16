@@ -39,19 +39,20 @@
 
 // FemtoDst headers
 
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoDstReader.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoDst.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoEvent.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoTrack.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoV0.h"
-#include "/scratch2/demanov/STAR/BES/StFemtoEvent/StFemtoXi.h"
+#include "StFemtoDstReader.h"
+#include "StFemtoDst.h"
+#include "StFemtoEvent.h"
+#include "StFemtoTrack.h"
+#include "StFemtoV0.h"
+#include "StFemtoXi.h"
 
 // Constant
-#include "/scratch2/demanov/STAR/BES/macro/Constants.h"
+#include "Constants.h"
+#include "functions.C"
 
 // Load libraries (for ROOT_VERSTION_CODE >= 393215)
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,0,0)
-R__LOAD_LIBRARY(/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so)
+R__LOAD_LIBRARY(libStFemtoDst.so)
 #endif
 
 // inFile - is a name of name.FemtoDst.root file or a name
@@ -62,13 +63,6 @@ R__LOAD_LIBRARY(/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so)
 Bool_t isGoodEvent(StFemtoEvent *const &event, const Int_t _energy, const Bool_t BadRunIdKeyFlowStage);
 Bool_t isGoodTrackEP(StFemtoEvent *const &event, StFemtoTrack *const &track, const Int_t _energy);
 Bool_t isGoodTrackFlow(StFemtoEvent *const &event, StFemtoTrack *const &track, const Int_t _energy);
-TVector2 CalculateQvector(Int_t harmonic, StFemtoTrack *const &track);
-Int_t GetEtaDirection(StFemtoTrack *const &track);
-Int_t GetBinVtxZ(StFemtoEvent *const &event, const Int_t _energy);
-Int_t GetBinEta(StFemtoTrack *const &track);
-Double_t GetWeight(StFemtoTrack *const &track);
-
-
 
 //_________________
 void FemtoDstAnalyzer_Hadrons(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.root",
@@ -79,7 +73,7 @@ void FemtoDstAnalyzer_Hadrons(const Char_t *inFile = "st_physics_12150008_raw_40
   std::cout << "Hi! Lets do some physics, Master!" << std::endl;
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
-    gSystem->Load("/scratch2/demanov/STAR/BES/StFemtoEvent/libStFemtoDst.so");
+    gSystem->Load("libStFemtoDst.so");
   #endif
 
   StFemtoDstReader* femtoReader = new StFemtoDstReader(inFile);
@@ -798,60 +792,3 @@ Bool_t isGoodTrackFlow(StFemtoEvent *const &event, StFemtoTrack *const &track, c
 
   return true; 
 }// isGoodTrack(){}
-
-//***********************CALCULATE Q-VECTOR**********************//
-TVector2 CalculateQvector(Int_t harmonic, StFemtoTrack *const &track){
-  
-  TVector2 qv(0.,0.);
-  qv.Set( TMath::Cos( harmonic * track -> phi() ) , TMath::Sin( harmonic * track -> phi() ) );
-  return qv;
-
-}// CalculateQvector(){}
-
-Int_t GetEtaDirection(StFemtoTrack *const &track){
-
-  if(track -> eta() < 0.) return 0;
-  if(track -> eta() > 0.) return 1;
-  return -1;
-}
-
-Int_t GetBinVtxZ(StFemtoEvent *const &event, const Int_t _energy){
-  
-  TVector3 pVtx = event->primaryVertex();
-
-  if(pVtx.Z() == (-1.0 * CutVtxZ.at(_energy))) return 0;
-  if(pVtx.Z() == CutVtxZ.at(_energy)) return (nBinVtxZ_Hadrons-1);
-
-  Int_t bin = -1;
-
-  bin = (Int_t)( TMath::Abs(CutVtxZ.at(_energy) + pVtx.Z()) / (2.0*CutVtxZ.at(_energy) / nBinVtxZ_Hadrons));
-  
-  //std::cout << bin <<"\t\t" << pVtx.Z()<<std::endl;
-
-  if(bin > nBinVtxZ_Hadrons)return -1;
-
-  return bin;
-
-}
-
-Int_t GetBinEta(StFemtoTrack *const &track){
-
-  for(Int_t i = nEtaGapHadrons-1 ; i >= 0; i--){
-    if( TMath::Abs(track -> eta()) > EtaVecHadrons[i]){ 
-      return i;
-    } 
-  }
-  return -1;
-}
-
-Double_t GetWeight(StFemtoTrack *const &track){
-  
-  Double_t w;
-  if (track->pt() <= 2.0){
-    w = track->pt();
-  }
-  else{
-    w = 2.0;
-  }
-  return w;
-}

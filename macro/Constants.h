@@ -58,11 +58,6 @@ const double CutPtFlowMax_Hadrons = 5.0;
 const double CutPtotEPMin_PID = 0.15;
 const double CutPtotEPMax_PID = 5.0;
 const double CutPtotFlowMin_PID = 0.15;
-//const double CutPtotFlowMax_PID = 10.0;
-
-//const double CutPtotEPMin_PID = 0.2;
-//const double CutPtotEPMax_PID = 2.0;
-//const double CutPtotFlowMin_PID = 0.2;
 const double CutPtotFlowMax_PID = 5.0;
 
 
