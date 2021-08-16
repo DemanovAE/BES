@@ -43,12 +43,6 @@ Int_t GetBinEta(StFemtoTrack *const &track){
   return -1;
 }
 
-Float_t GetRapidity(StFemtoTrack *const &track, Int_t particle){
-
-  Float_t E = sqrt( pow( track->p(), 2) + pow( GetMass(particle) ,2) );
-  return 0.5 * log( (E + track->pMom().Z() ) / ( E - track->pMom().Z() ) );
-}
-
 Float_t GetMass(Int_t particle){
   if(particle==0){
     return pion_mass;
@@ -60,6 +54,12 @@ Float_t GetMass(Int_t particle){
     return proton_mass;
   }
   return 100.;
+}
+
+Float_t GetRapidity(StFemtoTrack *const &track, Int_t particle){
+
+  Float_t E = sqrt( pow( track->p(), 2) + pow( GetMass(particle) ,2) );
+  return 0.5 * log( (E + track->pMom().Z() ) / ( E - track->pMom().Z() ) );
 }
 
 Double_t GetWeight(StFemtoTrack *const &track){

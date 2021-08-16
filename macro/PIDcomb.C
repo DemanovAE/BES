@@ -503,23 +503,6 @@ std::vector<Int_t> trig = Trigger.at(_energy);
   return true;
 }// isGoodEvent(){}
 
-Bool_t TofMatchedCut(StFemtoDst *const &dst, Int_t cutTofMatched){
-
-    Int_t nTrack = dst->numberOfTracks();
-    Int_t number_tof=0;
-
-    for(Int_t iTrk=0; iTrk<nTrack; iTrk++) {
-      StFemtoTrack *femtoTrack = dst->track(iTrk);
-      if ( !femtoTrack ) continue;
-      if ( femtoTrack->isTofTrack()){
-        number_tof++;
-      }
-      if(number_tof > cutTofMatched) return true;
-    }
-
-    return false;
-
-}
 
 //********************CHECK TRACK FLOW ON GOOD********************//
 Bool_t isGoodTrackFlow(StFemtoEvent *const &event, StFemtoTrack *const &track, const Int_t _energy) {
