@@ -44,6 +44,8 @@ void FitTF1_dEdx_nSigma(TFile *fileIn, TFile *fileWithFitM2, Int_t PID_code, Int
 void FirstFitTree2x2DGaus(TFile *inFileHisto, TFile *inFileFitFun, Int_t pt);
 void FitTree2x2DGaus(TFile *inFile, TFile *outFile, TH2D *histo, Int_t pt, Int_t charge);
 
+void FirstFitTree2x2DGausNewXY(TFile *inFileHisto, TFile *outFile, Int_t pt);
+void FitTree2x2DGausNewXY(TFile *outFile, TH2D *histo, Int_t pt, Int_t charge);
 
 void combPID_Gaus(const Char_t *inFileNameWithHisto = "iTest.root", const Char_t *inFileNameWithFitFun = "iTest1.root", const Char_t *outFileName = "oTest2.root", const Int_t energy = 39, Int_t step = 30, const Int_t pt=2){
 
@@ -470,4 +472,138 @@ Double_t readParFromGraph(TFile *inFile, TString name, Double_t pt){
 	vol = graph->Eval(pt);
 
 	return vol;
+}
+
+
+void FirstFitTree2x2DGausNewXY(TFile *inFileHisto, TFile *outFile, Int_t pt){
+	
+	TH2D *histoPos = (TH2D*)inFileHisto -> Get(Form("h2_m2VsnSigma_piKp_0_pt%i_new", pt));
+	TH2D *histoNeg = (TH2D*)inFileHisto -> Get(Form("h2_m2VsnSigma_piKp_1_pt%i_new", pt));
+	
+	//histoPos->RebinX(2);
+	//histoNeg->RebinX(2);
+
+	FitTree2x2DGausNewXY(outFile,histoPos,pt,0);
+	FitTree2x2DGausNewXY(outFile,histoNeg,pt,1);
+}
+
+void FitTree2x2DGausNewXY(TFile *outFile, TH2D *histo, Int_t pt, Int_t charge){
+
+	gStyle->SetOptFit(kTRUE);
+
+	Double_t pt_point = (ptBinRange[pt]+ptBinRange[pt+1])/2;
+	Double_t parThree2DGaus[15] = {0.};
+	Double_t parThree2x2DGaus[30] = {0.};
+
+	Double_t limitPar_meanNewX[3]={0.1,0.1,0.2};
+	Double_t limitPar_meanNewY[3]={0.1,0.1,0.2};
+
+	TH1D *histoProjX = (TH1D*)histo->ProjectionX(Form("px_ptBin%i_charge%i",pt,charge));
+
+	TF1 *tf1_Gaus;
+	TF1 *One1DGaus = new TF1(Form("One1DGaus%ich%i",pt,charge),"gaus", -1.0,0.1);
+	TF1 *Three1DGaus = new TF1(Form("Three1DGaus%ich%i",pt,charge),"gaus(0)+gaus(3)+gaus(6)", -0.4,1.5);
+	TF2 *Three2DGaus = new TF2(Form("Three2DGaus%ich%iNewXY",pt,charge),"xygaus(0)+xygaus(5)+xygaus(10)", -0.3,1.2,-1.2,0.5);
+	TF2 *Three2x2DGaus = new TF2(Form("Three2x2DGaus%ich%iNewXY",pt,charge),"xygaus(0)+xygaus(5)+xygaus(10)+xygaus(15)+xygaus(20)+xygaus(25)", -0.5,1.5,-1.3,0.6);
+
+	Double_t meanNewX1d[3]={0.0,0.23,0.87};
+	Double_t meanNewX1min[3]={-0.2,0.18,0.82};
+	Double_t meanNewX1smax[3]={0.15,0.30,1.1};
+
+	for(Int_t par=0; par<3; par++){
+		tf1_Gaus = fitFun1DGaus(histoProjX , 10., meanNewX1d[par], 0.01, 10, meanNewX1min[par], meanNewX1smax[par], 0);
+		Three1DGaus->SetParameter(0+3*par,tf1_Gaus->GetParameter(0));
+		Three1DGaus->SetParameter(1+3*par,tf1_Gaus->GetParameter(1));
+		Three1DGaus->SetParameter(2+3*par,tf1_Gaus->GetParameter(2));
+		delete tf1_Gaus;
+	}
+	histoProjX->Fit(Three1DGaus,"RM");
+
+	Double_t meanProtonNewX = Three1DGaus->GetParameter(7);
+	Double_t sigmaProtonNewX = TMath::Abs(Three1DGaus->GetParameter(8));
+
+	TH1D *histoProjY = (TH1D*)histo->ProjectionY(Form("py_ptBin%i_charge%i",pt,charge),histoProjX->FindBin(meanProtonNewX - sigmaProtonNewX),histoProjX->FindBin(meanProtonNewX + sigmaProtonNewX));
+	histoProjY->Fit(One1DGaus,"RM");
+
+	for(Int_t par=0; par<3; par++){
+
+		Three2DGaus->SetParameter(0+5*par,Three1DGaus->GetParameter(0+3*par));
+		Three2DGaus->SetParameter(1+5*par, Three1DGaus->GetParameter(1+3*par));
+		Three2DGaus->SetParameter(2+5*par, TMath::Abs(Three1DGaus->GetParameter(2+3*par)));
+		if(par==2){
+			Three2DGaus->SetParameter(3+5*par, One1DGaus->GetParameter(1));
+			Three2DGaus->SetParameter(4+5*par, TMath::Abs(One1DGaus->GetParameter(2)));
+		}else{
+			Three2DGaus->SetParameter(3+5*par, 0.0);
+			Three2DGaus->SetParameter(4+5*par, 1.75*TMath::Abs(Three1DGaus->GetParameter(2+3*par)));
+		}
+
+		Three2DGaus->SetParLimits(1+5*par, Three1DGaus->GetParameter(1+3*par)-limitPar_meanNewX[par], Three1DGaus->GetParameter(1+3*par)+limitPar_meanNewX[par]);
+		Three2DGaus->SetParLimits(2+5*par, 0.7*TMath::Abs( Three1DGaus->GetParameter(2+3*par)), 1.3*TMath::Abs( Three1DGaus->GetParameter(2+3*par)));
+		if(par==2){
+			Three2DGaus->SetParLimits(3+5*par, One1DGaus->GetParameter(1)-limitPar_meanNewY[par], One1DGaus->GetParameter(1)+limitPar_meanNewY[par]);
+			Three2DGaus->SetParLimits(4+5*par, 0.5*TMath::Abs( One1DGaus->GetParameter(2)), 2.*TMath::Abs( One1DGaus->GetParameter(2)));
+		}else{
+			Three2DGaus->SetParLimits(3+5*par, 0.0-limitPar_meanNewY[par], 0.0+limitPar_meanNewY[par]);
+			Three2DGaus->SetParLimits(4+5*par, 0.5*TMath::Abs( Three1DGaus->GetParameter(2+3*par)), 2*TMath::Abs( Three1DGaus->GetParameter(2+3*par)));
+		}	
+
+	}
+
+	Three2DGaus->GetParameters(&parThree2DGaus[0]);
+	std::cout<<"\n Par from 1d fit\n";
+	for(Int_t p=0; p<15; p++){
+		std::cout<<"\t"<<p<<"\t\t"<<parThree2DGaus[p]<<"\n";
+	}
+	std::cout<<"\n";
+
+	histo->Fit(Three2DGaus,"RM");
+	Three2DGaus->GetParameters(&parThree2DGaus[0]);
+	Three2DGaus->SetParameters(parThree2DGaus);
+	std::cout<<"\nStep 2\n";
+	histo->Fit(Three2DGaus,"RM");
+
+
+	Three2DGaus->GetParameters(&parThree2x2DGaus[0]);
+	Three2DGaus->GetParameters(&parThree2x2DGaus[15]);
+	
+	Three2x2DGaus->SetParameters(parThree2x2DGaus);
+
+	for(Int_t i=0; i<6; i++){
+		Three2x2DGaus->FixParameter(1+5*i,parThree2x2DGaus[1+5*i]);
+		Three2x2DGaus->FixParameter(3+5*i,parThree2x2DGaus[3+5*i]);
+	}
+
+	for(Int_t i=0; i<3; i++){
+		Three2x2DGaus->SetParLimits(0+5*i, 0.8*parThree2x2DGaus[0+5*i], 1.2*parThree2x2DGaus[0+5*i]);
+		Three2x2DGaus->SetParLimits(2+5*i, 0.8*parThree2x2DGaus[2+5*i], 1.2*parThree2x2DGaus[2+5*i]);		
+		Three2x2DGaus->SetParLimits(4+5*i, 0.8*parThree2x2DGaus[4+5*i], 1.2*parThree2x2DGaus[4+5*i]);
+	}
+
+	for(Int_t i=3; i<6; i++){
+		Three2x2DGaus->SetParameter(0+5*i, parThree2x2DGaus[0+5*i]/20.);
+		Three2x2DGaus->SetParameter(2+5*i, 1.4*parThree2x2DGaus[2+5*i]);
+		Three2x2DGaus->SetParameter(4+5*i, 2.5*parThree2x2DGaus[4+5*i]);
+
+		Three2x2DGaus->SetParLimits(0+5*i, 0.0, parThree2x2DGaus[0+5*i]/10);
+		Three2x2DGaus->SetParLimits(2+5*i, 0.8*parThree2x2DGaus[2+5*i], 2.0*parThree2x2DGaus[2+5*i]);		
+		Three2x2DGaus->SetParLimits(4+5*i, parThree2x2DGaus[4+5*i], 4.0*parThree2x2DGaus[4+5*i]);
+	}
+
+	histo->Fit(Three2x2DGaus,"RM");
+	histo->Fit(Three2x2DGaus,"RM");
+
+	TCanvas *can = new TCanvas(Form("canvas%i%i",pt,charge),"plot",1024,1024);
+	histo->Draw("colz");
+	Three2x2DGaus->Draw("same");
+	//can->SaveAs(Form("./FitThree2x2DGausNewXY_pt%i_ch%i_Run18.png",pt,charge));
+
+	outFile->cd();
+
+	histoProjX->Write();
+	histoProjY->Write();
+	histo->Write();
+	Three2DGaus->Write();
+	Three2x2DGaus->Write();
+
 }
