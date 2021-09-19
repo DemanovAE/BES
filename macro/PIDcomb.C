@@ -29,6 +29,7 @@
 #include "TSystem.h"
 #include "TH1.h"
 #include "TH2.h"
+#include "TH3.h"
 #include "TProfile.h"
 #include "TMath.h"
 #include "TString.h"
@@ -136,10 +137,6 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
   TH2D *h2_m2VsPt_all_new[2][3];
   TH2D *h2_m2VsPt_all_new_fit[2][3];
 
-  TH1D *h1_m2_nSigmaDistrM2_Pion[2][30];
-  TH1D *h1_m2_nSigmaDistrM2_Kaon[2][30];
-  TH1D *h1_m2_nSigmaDistrM2_Proton[2][30];
-
   //___________
   TF1 *tf1_fitFun;
   
@@ -157,11 +154,10 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
   Double_t meanM2_xy[2][3][30] = {0.};
   Double_t sigmaM2_xy[2][3][30] = {0.};
 
+  TH3D *h3_nSigmaM2dEdxPt[2][3];
+
   TH2D *h2_m2vsnSigmaPion_piKp[2][30];
   TH2D *h2_m2vsnSigmaPion_piKp_nSigmaM2[2][30];
-
-  TH2D *h2_m2vsnSigmaPion_piKp_new[2][30];
-  TH2D *h2_m2vsnSigmaPion_piKp_new_star[2][30];
   
   TH2D *h2_m2vsnSigmaPion_piK_new[2][30];
   TH2D *h2_m2vsnSigmaPion_piK_new_cut1[2][30];
@@ -190,44 +186,26 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
     h2_m2VsPt_all[1] = new TH2D("h2_m2VsPt_all_ch1","m^2 vs p_{T} (charge < 0); p_{T} (GeV/c);m^{2} (GeV/c^{2})^{2}",1000,0,5,400,-0.5,1.5);
 
     for(Int_t par=0; par<3; par++){
-      h2_m2VsPt_all_new[0][par] = new TH2D(Form("h2_m2VsPt_all_%s_ch0_new",particles[par]),"n#sigma(m^{2}) distributionm vs p_{T} (charge > 0); p_{T} (GeV/c);n#sigma(m^{2})",640,0,3.2,1500,-15,15);
-      h2_m2VsPt_all_new[1][par] = new TH2D(Form("h2_m2VsPt_all_%s_ch1_new",particles[par]),"n#sigma(m^{2}) distributionm vs p_{T} (charge < 0); p_{T} (GeV/c);n#sigma(m^{2})",640,0,3.2,1500,-15,15);
-    }
-
-    for(Int_t par=0; par<3; par++){
       h2_m2VsPt_all_new_fit[0][par] = new TH2D(Form("h2_m2VsPt_all_%s_ch0_new_fit",particles[par]),"n#sigma(m^{2}) distributionm vs p_{T} (charge > 0); p_{T} (GeV/c);n#sigma(m^{2})",640,0,3.2,1500,-15,15);
       h2_m2VsPt_all_new_fit[1][par] = new TH2D(Form("h2_m2VsPt_all_%s_ch1_new_fit",particles[par]),"n#sigma(m^{2}) distributionm vs p_{T} (charge < 0); p_{T} (GeV/c);n#sigma(m^{2})",640,0,3.2,1500,-15,15);
     }
 
-
-    for(Int_t ch=0; ch<2; ch++){
-      for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){ 
-        h1_m2_nSigmaDistrM2_Pion[ch][pti] = new TH1D(Form("h1_m2_%s_charge%i_pt%i",particles[0],ch,pti),Form("#font[42]{n#sigma(%s), (m^{2}-#mu)/#sigma, %.1f<p_T<%.1f GeV/c};(m^{2}-#mu)/#sigma", partLateX[0+ch] ,ptBinRange[pti], ptBinRange[pti+1]), 2000, -10.0, 10.0 );
-      }
-      for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
-        h1_m2_nSigmaDistrM2_Kaon[ch][pti] = new TH1D(Form("h1_m2_%s_charge%i_pt%i",particles[1],ch,pti),Form("#font[42]{n#sigma(%s), (m^{2}-#mu)/#sigma, %.1f<p_T<%.1f GeV/c};(m^{2}-#mu)/#sigma", partLateX[2+ch] ,ptBinRange[pti], ptBinRange[pti+1]), 2000, -10.0, 10.0 );
-      }
-      for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
-        h1_m2_nSigmaDistrM2_Proton[ch][pti] = new TH1D(Form("h1_m2_%s_charge%i_pt%i",particles[2],ch,pti),Form("#font[42]{n#sigma(%s), (m^{2}-#mu)/#sigma, %.1f<p_T<%.1f GeV/c};(m^{2}-#mu)/#sigma", partLateX[4+ch] ,ptBinRange[pti], ptBinRange[pti+1]), 2000, -15.0, 5.0 );
-      }
-      for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
-        h2_m2vsnSigmaPion_piKp[ch][pti] = new TH2D(Form("h2_m2VsnSigma_piKp_%i_pt%i",ch,pti),Form("m^{2} vs n#sigma(%s) %.1f<p_T<%.1f GeV/c;n#sigma(%s);m^{2},(GeV/c^{2})^{2}", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch]), 1200, -12, 12, 1200, -1.0, 2.0 );
-      }
-      for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
-        h2_m2vsnSigmaPion_piKp_nSigmaM2[ch][pti] = new TH2D(Form("h2_nSigmaM2VsnSigma_piKp_%i_pt%i",ch,pti),Form("n#sigma(m^{2})(Pion) vs n#sigma(%s) %.1f<p_T<%.1f GeV/c;n#sigma(%s);n#sigma(m^{2})(Pion)", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch]), 2000, -10, 10, 2600, -6, +20 );
+    for(Int_t par=0; par<3; par++){
+      for(Int_t ch=0; ch<2; ch++){
+        h3_nSigmaM2dEdxPt[ch][par] = new TH3D(Form("h3_nSigmaM2dEdxPt_%s_charge%i",particles[par],ch),Form("#font[42]{ n#sigma_{m^2}(%s)((m^{2}-#mu)/#sigma}) vs n#sigma_{dE/dx}(%s); n#sigma_{m^2}(%s); n#sigma_{dE/dx}(%s); p_{T} (GeV/c)", partLateX[par+ch] ,partLateX[par+ch], partLateX[par+ch] ,partLateX[par+ch]), 1001, -10.0, 10.0, 1001, -10.0, -10.0, 640, 0.,3.2);
       }
     }
 
-    FileFitM2 = new TFile(Form("%s/PIDcomb/FitFunM2_%iGeVRun18.root",path,energy),"READ");
+    FileFitM2 = new TFile(Form("%s/OUT/%iGeV/FitFunM2_%iGeVRun10.root",path,energy,energy),"READ");
     FileFitM2->cd();
 
     for(Int_t ch=0; ch<2; ch++){
       for(Int_t par=0; par<3; par++){
         for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
           //std::cout<<(int)ptBinRange.size()<<"\t\t"<<Form("tf1_%s_m2_charge%i_pt%i",particles[par],ch, pti)<<"\n";
-          tf1_fitFun = (TF1*) FileFitM2 -> Get( Form("tf1_%s_m2_charge%i_pt%i",particles[par],ch, pti) );
-          meanM2[ch][par][pti] = tf1_fitFun->GetParameter(1);
-          sigmaM2[ch][par][pti] = tf1_fitFun->GetParameter(2);
+          tf1_fitFun = (TF1*) FileFitM2 -> Get( Form("tf1_FitM2Three1DGaus_charge%i_pt%i",ch, pti) );
+          meanM2[ch][par][pti] = tf1_fitFun->GetParameter(1+3*par);
+          sigmaM2[ch][par][pti] = tf1_fitFun->GetParameter(2+3*par);
 
           //std::cout<<meanM2[ch][par][pti]<<"\t"<<sigmaM2[ch][par][pti]<<"\n";
 
@@ -277,7 +255,6 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
     for(Int_t ch=0; ch<2; ch++){
       for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
         h2_m2vsnSigmaPion_piKp[ch][pti] = new TH2D(Form("h2_m2VsnSigma_piKp_%i_pt%i",ch,pti),Form("m^{2} vs n#sigma(%s) %.1f<p_T<%.1f GeV/c;n#sigma(%s);m^{2},(GeV/c^{2})^{2}", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch]), 1200, -12, 12, 1200, -1.0, 2.0 );
-        h2_m2vsnSigmaPion_piKp_new[ch][pti] = new TH2D(Form("h2_m2VsnSigma_piKp_%i_pt%i_new",ch,pti),Form("m^{2} vs n#sigma(%s) New coord %.1f<p_T<%.1f GeV/c;x(n#sigma(%s),m^{2});y(n#sigma(%s),m^{2})", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch],partLateX[ch]), 1600, -2, 2, 1600, -2.0, 2.0 );
         h2_m2vsnSigmaPion_piK_new[ch][pti] = new TH2D(Form("h2_m2VsnSigma_piK_%i_pt%i_new",ch,pti),Form("m^{2} vs n#sigma(%s) New coord %.1f<p_T<%.1f GeV/c;x(n#sigma(%s),m^{2});y(n#sigma(%s),m^{2})", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch],partLateX[ch]), 1600, -2, 2, 1600, -2.0, 2.0 );
         h2_m2vsnSigmaPion_piK_new_cut1[ch][pti] = new TH2D(Form("h2_m2VsnSigma_piK_%i_pt%i_new_cut1",ch,pti),Form("m^{2} vs n#sigma(%s) New coord %.1f<p_T<%.1f GeV/c;x(n#sigma(%s),m^{2});y(n#sigma(%s),m^{2})", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch],partLateX[ch]), 1600, -2, 2, 1600, -2.0, 2.0 );
         h2_m2vsnSigmaPion_piK_new_cut2[ch][pti] = new TH2D(Form("h2_m2VsnSigma_piK_%i_pt%i_new_cut2",ch,pti),Form("m^{2} vs n#sigma(%s) New coord %.1f<p_T<%.1f GeV/c;x(n#sigma(%s),m^{2});y(n#sigma(%s),m^{2})", partLateX[ch], ptBinRange[pti], ptBinRange[pti+1] ,partLateX[ch],partLateX[ch]), 1600, -2, 2, 1600, -2.0, 2.0 );
@@ -285,16 +262,16 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
       }
     }  
 
-    FileFitM2 = new TFile(Form("%s/PIDcomb/FitFunM2_%iGeVRun18.root",path,energy),"READ");
+    FileFitM2 = new TFile(Form("%s/OUT/%iGeV/FitFunM2_%iGeVRun10.root",path,energy,energy),"READ");
     FileFitM2->cd();
 
     for(Int_t ch=0; ch<2; ch++){
       for(Int_t par=0; par<3; par++){
         for(Int_t pti=0; pti<(int)ptBinRange.size()-1; pti++){
           //std::cout<<(int)ptBinRange.size()<<"\t\t"<<Form("tf1_%s_m2_charge%i_pt%i",particles[par],ch, pti)<<"\n";
-          tf1_fitFun = (TF1*) FileFitM2 -> Get( Form("tf1_%s_m2_charge%i_pt%i",particles[par],ch, pti) );
-          meanM2[ch][par][pti] = tf1_fitFun->GetParameter(1);
-          sigmaM2[ch][par][pti] = tf1_fitFun->GetParameter(2);
+          tf1_fitFun = (TF1*) FileFitM2 -> Get( Form("tf1_FitM2Three1DGaus_charge%i_pt%i",ch, pti) );
+          meanM2[ch][par][pti] = tf1_fitFun->GetParameter(1+3*par);
+          sigmaM2[ch][par][pti] = tf1_fitFun->GetParameter(1+3*par);
 
           delete tf1_fitFun;
         }
@@ -411,21 +388,14 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
 
       if(mode_nSigma==true){
         h2_m2VsPt_all[charge]->Fill(femtoTrack -> pt(), femtoTrack->massSqr());
-        
-        h2_m2VsPt_all_new[charge][0]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - meanM2[charge][0][ptBin]) / sigmaM2[charge][0][ptBin]);
-        h2_m2VsPt_all_new[charge][1]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - meanM2[charge][1][ptBin]) / sigmaM2[charge][1][ptBin]);
-        h2_m2VsPt_all_new[charge][2]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - meanM2[charge][2][ptBin]) / sigmaM2[charge][2][ptBin]);
-        
+
         h2_m2VsPt_all_new_fit[charge][0]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval(pt)) / tf1_FitSigmaM2[charge][0]->Eval(pt));
         h2_m2VsPt_all_new_fit[charge][1]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval(pt)) / tf1_FitSigmaM2[charge][1]->Eval(pt));
         h2_m2VsPt_all_new_fit[charge][2]->Fill(femtoTrack -> pt(), (femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval(pt)) / tf1_FitSigmaM2[charge][2]->Eval(pt));
 
-        h1_m2_nSigmaDistrM2_Pion[charge][ptBin]->Fill( (femtoTrack->massSqr() - meanM2[charge][0][ptBin]) / sigmaM2[charge][0][ptBin]);
-        h1_m2_nSigmaDistrM2_Kaon[charge][ptBin]->Fill( (femtoTrack->massSqr() - meanM2[charge][1][ptBin]) / sigmaM2[charge][1][ptBin]);
-        h1_m2_nSigmaDistrM2_Proton[charge][ptBin]->Fill( (femtoTrack->massSqr() - meanM2[charge][2][ptBin]) / sigmaM2[charge][2][ptBin]);
-
-        h2_m2vsnSigmaPion_piKp_nSigmaM2[charge][ptBin]->Fill(scale_nSigma*femtoTrack->nSigmaPion(), (femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval(pt)) / tf1_FitSigmaM2[charge][0]->Eval(pt));
-
+        //h3_nSigmaM2dEdxPt[charge][0]->Fill((femtoTrack->massSqr() - tf1_FitMeanM2[charge][0]->Eval(pt)) / tf1_FitSigmaM2[charge][0]->Eval(pt), femtoTrack->nSigmaPion(), femtoTrack->pt());
+        //h3_nSigmaM2dEdxPt[charge][1]->Fill((femtoTrack->massSqr() - tf1_FitMeanM2[charge][1]->Eval(pt)) / tf1_FitSigmaM2[charge][1]->Eval(pt), femtoTrack->nSigmaKaon(), femtoTrack->pt());
+        //h3_nSigmaM2dEdxPt[charge][2]->Fill((femtoTrack->massSqr() - tf1_FitMeanM2[charge][2]->Eval(pt)) / tf1_FitSigmaM2[charge][2]->Eval(pt), femtoTrack->nSigmaProton(), femtoTrack->pt());
 
       }//mode_nSigma
 
@@ -440,32 +410,34 @@ void PIDcomb(const Char_t *inFile = "st_physics_12150008_raw_4030001.femtoDst.ro
                                                                               meanNSigma_xy[charge][0][ptBin], meanM2_xy[charge][0][ptBin]).Y();
 
         h2_m2vsnSigmaPion_piKp[charge][ptBin]->Fill(femtoTrack->nSigmaPion(), femtoTrack->massSqr());
-        h2_m2vsnSigmaPion_piKp_new[charge][ptBin]->Fill(NewX, NewY);
+        h2_m2vsnSigmaPion_piK_new[charge][ptBin]->Fill(NewX, NewY);
 
         if( TMath::Abs((femtoTrack->massSqr() - meanM2[charge][2][ptBin]) / sigmaM2[charge][2][ptBin]) > 3.0 ){
-          h2_m2vsnSigmaPion_piK_new[charge][ptBin]->Fill(NewX, NewY);
+          h2_m2vsnSigmaPion_piK_new_cut1[charge][ptBin]->Fill(NewX, NewY);
+        }
+
+        if( femtoTrack->massSqr() < 0.65 ){
+          h2_m2vsnSigmaPion_piK_new_cut2[charge][ptBin]->Fill(NewX, NewY);
         }
 
         if( TMath::Abs((femtoTrack->massSqr() - meanM2[charge][2][ptBin]) / sigmaM2[charge][2][ptBin]) > 3.0 && femtoTrack->massSqr() < 0.65){
           h2_m2vsnSigmaPion_piK_new_cut3[charge][ptBin]->Fill(NewX, NewY);
         }
 
-        if( TMath::Abs((femtoTrack->massSqr() - meanM2_fit[charge][2][ptBin]) / sigmaM2_fit[charge][2][ptBin]) > 3.0 ){
-          h2_m2vsnSigmaPion_piK_new_cut1[charge][ptBin]->Fill(NewX, NewY);
-        }
-
-        if( TMath::Abs((femtoTrack->massSqr() - meanM2[charge][2][ptBin]) / sigmaM2[charge][2][ptBin]) > 3.0 ){
-          if( TMath::Abs((femtoTrack->massSqr() - meanM2[charge][0][ptBin]) / sigmaM2[charge][0][ptBin]) < 3.0 || TMath::Abs((femtoTrack->massSqr() - meanM2[charge][1][ptBin]) / sigmaM2[charge][1][ptBin]) < 3.0 ){
-            h2_m2vsnSigmaPion_piK_new_cut2[charge][ptBin]->Fill(NewX, NewY);
-          }
-        }
-  
       }// mode_NewXY;
 
     } //for(Int_t iTrk=0; iTrk<nTracks; iTrk++)
       
 
   } //for(Long64_t iEvent=0; iEvent<events2read; iEvent++)
+
+  /*
+  for(Int_t par=0; par<3; par++){
+    for(Int_t ch=0; ch<2; ch++){
+      h3_nSigmaM2dEdxPt[ch][par]->Write();
+    }
+  }
+  */
 
   outFile->Write();
   outFile->Close();

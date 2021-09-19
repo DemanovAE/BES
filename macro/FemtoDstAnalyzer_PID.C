@@ -226,11 +226,13 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
   TProfile2D *tp2_v2_TPC_TOF[nEtaGap][2][3];
   TProfile2D *tp2_v3_TPC_TOF[nEtaGap][2][3];
 
-  TProfile2D *tp2_v2_TPC_TOF_NoWeight[nEtaGap][2][3];
-  TProfile2D *tp2_v3_TPC_TOF_NoWeight[nEtaGap][2][3];
+  TProfile2D *tp2_v2_TPC_TOF_weight[nEtaGap][2][3];
+  TProfile2D *tp2_v3_TPC_TOF_weight[nEtaGap][2][3];
 
   TProfile *tp_v2_TPC_TOF_cent[nEtaGap][2][3];
+  TProfile *tp_v2_TPC_TOF_cent_w[nEtaGap][2][3];
   TProfile *tp_v3_TPC_TOF_cent[nEtaGap][2][3];
+  TProfile *tp_v3_TPC_TOF_cent_w[nEtaGap][2][3];
   
   TProfile2D *tp2_v2_TPC_TOF_eta[nEtaGap][2][3];
   TProfile2D *tp2_v3_TPC_TOF_eta[nEtaGap][2][3];
@@ -240,6 +242,18 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
 
   TProfile *tp2_v2_nSigmaPID_cent[nEtaGap][2][3];
   TProfile *tp2_v3_nSigmaPID_cent[nEtaGap][2][3];
+
+
+
+
+  TProfile2D *tp2_v2_nSigmaPID_weight[nEtaGap][2][3];
+  TProfile2D *tp2_v3_nSigmaPID_weight[nEtaGap][2][3];
+
+  TProfile *tp2_v2_nSigmaPID_cent_w[nEtaGap][2][3];
+  TProfile *tp2_v3_nSigmaPID_cent_w[nEtaGap][2][3];
+
+
+
 
   //********mean pt *******//
   TProfile2D *tp2_meanPt_CombPID[nEtaGap][2][3];
@@ -438,8 +452,15 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
           tp2_v2_nSigmaPID[i][sign][par] = new TProfile2D(Form("tp_v2ewTPC%s%s%snSigmaPID",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
           tp2_v3_nSigmaPID[i][sign][par] = new TProfile2D(Form("tp_v3ewTPC%s%s%snSigmaPID",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
 
+          tp2_v2_nSigmaPID_weight[i][sign][par] = new TProfile2D(Form("tp_v2ewTPC%s%s%snSigmaPIDweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
+          tp2_v3_nSigmaPID_weight[i][sign][par] = new TProfile2D(Form("tp_v3ewTPC%s%s%snSigmaPIDweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
+
+
           tp2_v2_nSigmaPID_cent[i][sign][par] = new TProfile(Form("tp_v2ewTPC%s%s%sCentnSigmaPID",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of p_{t} and cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
           tp2_v3_nSigmaPID_cent[i][sign][par] = new TProfile(Form("tp_v3ewTPC%s%s%sCentnSigmaPID",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of p_{t} and cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
+
+          tp2_v2_nSigmaPID_cent_w[i][sign][par] = new TProfile(Form("tp_v2ewTPC%s%s%sCentnSigmaPIDweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of p_{t} and cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
+          tp2_v3_nSigmaPID_cent_w[i][sign][par] = new TProfile(Form("tp_v3ewTPC%s%s%sCentnSigmaPIDweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of p_{t} and cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
 
 
           tp2_meanPt_TPC_TOF[i][sign][par] = new TProfile2D(Form("tp_meanPt%s%s%sTPCandTOF",particles[par],particlesSign[sign],NameEtaPID[i]),Form("Mean p_{t} for bins v_{2} %s %s ; bin; p_{t} [GeV/c]",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
@@ -447,11 +468,14 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
           tp_v2_TPC_TOF_cent[i][sign][par] = new TProfile(Form("tp_v2ewTPC%s%s%sCentTPCandTOF",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
           tp_v3_TPC_TOF_cent[i][sign][par] = new TProfile(Form("tp_v3ewTPC%s%s%sCentTPCandTOF",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
 
+          tp_v2_TPC_TOF_cent_w[i][sign][par] = new TProfile(Form("tp_v2ewTPC%s%s%sCentTPCandTOFweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
+          tp_v3_TPC_TOF_cent_w[i][sign][par] = new TProfile(Form("tp_v3ewTPC%s%s%sCentTPCandTOFweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of cent by TPC %s;cent bin",partLateX[p_name],NameEtaPID[i]),nBinCent,0,nBinCent);
+
           tp2_v2_TPC_TOF[i][sign][par] = new TProfile2D(Form("tp_v2ewTPC%s%s%sTPCandTOF",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
           tp2_v3_TPC_TOF[i][sign][par] = new TProfile2D(Form("tp_v3ewTPC%s%s%sTPCandTOF",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
 
-          tp2_v2_TPC_TOF_NoWeight[i][sign][par] = new TProfile2D(Form("tp_v2ewTPC%s%s%sTPCandTOFnoWeight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
-          tp2_v3_TPC_TOF_NoWeight[i][sign][par] = new TProfile2D(Form("tp_v3ewTPC%s%s%sTPCandTOFnoWeight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
+          tp2_v2_TPC_TOF_weight[i][sign][par] = new TProfile2D(Form("tp_v2ewTPC%s%s%sTPCandTOFweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{2} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
+          tp2_v3_TPC_TOF_weight[i][sign][par] = new TProfile2D(Form("tp_v3ewTPC%s%s%sTPCandTOFweight",particles[par],particlesSign[sign],NameEtaPID[i]),Form("v_{3} %s of p_{t} and cent by TPC %s;p_{t} [GeV/c];cent",partLateX[p_name],NameEtaPID[i]),100, 0.15, 5.15,nBinCent,0,nBinCent);
 
         }// for(Int_t i = 0; i < n; i++){}
         p_name++;
@@ -846,8 +870,16 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
             tp2_v2_nSigmaPID[s][charge][parnSigma] -> Fill(pt, (Double_t)cent, v2, 1.0);
             tp2_v3_nSigmaPID[s][charge][parnSigma] -> Fill(pt, (Double_t)cent, v3, 1.0);
 
-            tp2_v2_nSigmaPID_cent[s][charge][parnSigma] -> Fill((Double_t)cent, v2);
-            tp2_v3_nSigmaPID_cent[s][charge][parnSigma] -> Fill((Double_t)cent, v3);
+            tp2_v2_nSigmaPID_cent[s][charge][parnSigma] -> Fill((Double_t)cent, v2, 1.0);
+            tp2_v3_nSigmaPID_cent[s][charge][parnSigma] -> Fill((Double_t)cent, v3, 1.0);
+
+
+            tp2_v2_nSigmaPID_weight[s][charge][parnSigma] -> Fill(pt, (Double_t)cent, v2, GetWeightEfficiencies(pt, cent, parnSigma, charge));
+            tp2_v3_nSigmaPID_weight[s][charge][parnSigma] -> Fill(pt, (Double_t)cent, v3, GetWeightEfficiencies(pt, cent, parnSigma, charge));
+
+            tp2_v2_nSigmaPID_cent_w[s][charge][parnSigma] -> Fill((Double_t)cent, v2, GetWeightEfficiencies(pt, cent, parnSigma, charge));
+            tp2_v3_nSigmaPID_cent_w[s][charge][parnSigma] -> Fill((Double_t)cent, v3, GetWeightEfficiencies(pt, cent, parnSigma, charge));
+
 
             tp2_meanPt_nSigmaPID[s][charge][parnSigma] -> Fill(pt,(Double_t)cent,pt);
 
@@ -864,11 +896,15 @@ void FemtoDstAnalyzer_PID(const Char_t *inFile = "st_physics_12150008_raw_403000
             tp_v2_TPC_TOF_cent[s][charge][parTPCandTOF] -> Fill((Double_t)cent, v2);
             tp_v3_TPC_TOF_cent[s][charge][parTPCandTOF] -> Fill((Double_t)cent, v3);
 
-            tp2_v2_TPC_TOF[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v2, pt);
-            tp2_v3_TPC_TOF[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v3, pt);
+            tp_v2_TPC_TOF_cent_w[s][charge][parTPCandTOF] -> Fill((Double_t)cent, v2, GetWeightEfficiencies(pt, cent, parTPCandTOF, charge));
+            tp_v3_TPC_TOF_cent_w[s][charge][parTPCandTOF] -> Fill((Double_t)cent, v3, GetWeightEfficiencies(pt, cent, parTPCandTOF, charge));
 
-            tp2_v2_TPC_TOF_NoWeight[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v2, 1.0);
-            tp2_v3_TPC_TOF_NoWeight[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v3, 1.0);
+
+            tp2_v2_TPC_TOF[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v2, 1.);
+            tp2_v3_TPC_TOF[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v3, 1.);
+
+            tp2_v2_TPC_TOF_weight[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v2, GetWeightEfficiencies(pt, cent, parTPCandTOF, charge));
+            tp2_v3_TPC_TOF_weight[s][charge][parTPCandTOF] -> Fill(pt, (Double_t)cent, v3, GetWeightEfficiencies(pt, cent, parTPCandTOF, charge));
 
             tp2_meanPt_TPC_TOF[s][charge][parTPCandTOF] -> Fill(pt,(Double_t)cent,pt);
           }

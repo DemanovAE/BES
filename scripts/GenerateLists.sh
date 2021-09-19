@@ -10,8 +10,8 @@ NUM_DIVIDES=$2
 # . GenerateLists.sh /scratch2/parfenov/StData/27gev/run1/ 100
 
 CURRENT_DIR=${PWD}
-mkdir ../lists
-mkdir ../lists/lists27GeV
+mkdir -p ../lists
+mkdir -p ../lists/lists27GeV
 
 OUTPUT_DIR="../lists/lists27GeV"
 

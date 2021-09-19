@@ -17,6 +17,6 @@ do
   OUTPUT_O_SGE=$OUTPUT_DIR/sge_output/$RUNID/`basename ${line%.*t}`.out
   OUTPUT_E_SGE=$OUTPUT_DIR/sge_error/$RUNID/`basename ${line%.*t}`.err
 
-  qsub -o $OUTPUT_O_SGE -e $OUTPUT_E_SGE run_pid.sh $line $OUTPUT_ROOT $WORK_MODE $ENERGY $OUTPUT_LOG $
+  qsub -o $OUTPUT_O_SGE -e $OUTPUT_E_SGE run_pid.sh $line $OUTPUT_ROOT $WORK_MODE $ENERGY $OUTPUT_LOG
 
 done
